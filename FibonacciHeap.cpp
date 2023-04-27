@@ -78,7 +78,6 @@ vector<Node*> FibonacciHeap::getNodes()
     return this->nodes;
 }
 
-
 int FibonacciHeap::findMin()
 {
     if (this->minNode == nullptr)
@@ -170,7 +169,6 @@ void FibonacciHeap::merge(FibonacciHeap& FH)
     FH.n = 0;
 }
 
-
 void FibonacciHeap::decreaseKey(Node* x, int key)
 {
     if (key >= x->key)
@@ -188,23 +186,18 @@ void FibonacciHeap::decreaseKey(Node* x, int key)
         {
             this->minNode = x;
         }
-
+        
         return;
     }
 
     if(y->key<x->key) /// The case if the decrease key does not violate the min heap property
         return;
 
-
-
     if(x->right==x && x->left==x) /// If x is the only child of it's parent y, update the child pointer of y to nullptr
         y->child=nullptr;
 
-
     if (y->child==x) /// If y has more children (not just x)
     {
-
-
         y->child=x->right; /// If the pointer of child of y is to x (that we need to cut and add to the root list), update it to point to the next child (right sibling of x)
         x->left->right=x->right; /// Link the left and right of x (because we will cut x)
         x->right->left=x->left;
@@ -213,7 +206,6 @@ void FibonacciHeap::decreaseKey(Node* x, int key)
     {
         x->left->right=x->right; /// Link the left and right of x (because we will cut x)
         x->right->left=x->left;
-
     }
 
     /// Cut x from his parent and move it to the root list
@@ -233,19 +225,16 @@ void FibonacciHeap::decreaseKey(Node* x, int key)
 
     y->degree--;
 
-
-
-
-
     if (y->marked==false) /// If parent of x is not marked, mark it
     {
         y->marked=true;
         if(y->parent==nullptr) /// If parent of x is a root, don't mark it because it is redundant
             y->marked=false;
         return;
-
     }
+    
     else
+        
         while (y->marked==true && y->parent!=nullptr)
         {
             /// We make x the new z, y the parent of y, and do the same thing as before
@@ -267,6 +256,7 @@ void FibonacciHeap::decreaseKey(Node* x, int key)
                 z->right->left=z->left;
 
             }
+            
             /// Update z to the root list
             this->minNode->left->right = z;
             z->left = this->minNode->left;
@@ -283,18 +273,10 @@ void FibonacciHeap::decreaseKey(Node* x, int key)
             }
 
             y->degree--;
-
-
-
         }
 
     y->marked=true; ///If y is not a root, mark it
 
     if(y->parent==nullptr) ///If y is a root, don't mark it because it is redundant
         y->marked=false;
-
-
-
 }
-
-
