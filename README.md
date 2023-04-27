@@ -7,15 +7,18 @@ Fibonacci Heap
   
   ![fibonacci-heap2](https://user-images.githubusercontent.com/105515716/234972515-cae44be0-7060-48e8-93c5-3180d4da28bd.png)
 
-  
  The Fibonacci Heap supports several operations, including:
 
 -> Insertion: This operation inserts a new element into the heap in O(1) amortized time complexity.
 
 -> Find minimum: This operation returns the element with the minimum key in the heap in O(1) time complexity.
+
 -> Merge: This operation merges two Fibonacci Heaps in O(1) time complexity.
+
 -> Decrease key: This operation decreases the key of a node in the heap in O(1) amortized time complexity.
+
 -> Delete: This operation removes a specific node from the heap in O(log n) amortized time complexity.
+
 -> Extract minimum: This operation removes and returns the element with the minimum key in the heap in O(log n) amortized time complexity.
 
   The Fibonacci Heap has a better amortized performance compared to other priority queue data structures such as binary heaps or binomial heaps for certain operations such as decrease key and extract minimum. However, it has a higher constant factor in its running time, making it less efficient for small input sizes.
