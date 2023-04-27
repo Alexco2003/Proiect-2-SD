@@ -9,7 +9,7 @@ Fibonacci Heap
 
  The Fibonacci Heap supports several operations, including:
 
--> Insertion: This operation inserts a new element into the heap in O(1) amortized time complexity.
+-> Insertion: This operation inserts a new element into the heap in O(1) time complexity.
 
 -> Find minimum: This operation returns the element with the minimum key in the heap in O(1) time complexity.
 
