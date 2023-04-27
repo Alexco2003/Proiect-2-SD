@@ -22,3 +22,5 @@ Fibonacci Heap
 -> Extract minimum: This operation removes and returns the element with the minimum key in the heap in O(log n) amortized time complexity.
 
   The Fibonacci Heap has a better amortized performance compared to other priority queue data structures such as binary heaps or binomial heaps for certain operations such as decrease key and extract minimum. However, it has a higher constant factor in its running time, making it less efficient for small input sizes.
+  
+  ![image](https://user-images.githubusercontent.com/105515716/234973491-ef62f24d-c20f-43c1-814d-e44ed8494a78.png)
