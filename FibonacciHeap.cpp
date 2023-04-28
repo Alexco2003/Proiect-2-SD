@@ -54,6 +54,8 @@ public:
     void insert(int key);
     void merge(FibonacciHeap& FH);
     void decreaseKey(Node* x, int key);
+    int extractMin();
+    void deleteNode(Node* x);
 
     ~FibonacciHeap() {};
 
@@ -186,7 +188,7 @@ void FibonacciHeap::decreaseKey(Node* x, int key)
         {
             this->minNode = x;
         }
-        
+
         return;
     }
 
@@ -232,9 +234,9 @@ void FibonacciHeap::decreaseKey(Node* x, int key)
             y->marked=false;
         return;
     }
-    
+
     else
-        
+
         while (y->marked==true && y->parent!=nullptr)
         {
             /// We make x the new z, y the parent of y, and do the same thing as before
@@ -256,8 +258,8 @@ void FibonacciHeap::decreaseKey(Node* x, int key)
                 z->right->left=z->left;
 
             }
-            
-            /// Update z to the root list
+
+            /// Cut z from his parent and move it to the root list
             this->minNode->left->right = z;
             z->left = this->minNode->left;
             this->minNode->left = z;
@@ -279,4 +281,24 @@ void FibonacciHeap::decreaseKey(Node* x, int key)
 
     if(y->parent==nullptr) ///If y is a root, don't mark it because it is redundant
         y->marked=false;
+}
+
+int FibonacciHeap::extractMin()
+{
+    int key=this->minNode->key;
+
+    /// To be continued
+
+    return key;
+
+}
+
+void FibonacciHeap::deleteNode(Node* x)
+{
+    /// Decrease the key of the node to be deleted to a very small negative value
+    decreaseKey(x,-2003);
+    /// Extract the minimum node (which will be the node with the decreased key)
+    extractMin();
+    /// Print a message indicating that the node has been successfully deleted
+    cout<<"Node successfully deleted."<<endl;
 }
