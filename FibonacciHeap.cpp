@@ -120,10 +120,10 @@ public:
 
     /// Important Methods (The operations)
     int findMin();
-    Node* insert(int key); /// This was adjusted to be "Node*" instead of "void" for testing / for the interactive menu
+    Node* insert(int key); /// This was adjusted to be "Node*" instead of "void" for testing purposes / for the interactive menu
     void merge(FibonacciHeap& FH);
     void decreaseKey(Node* x, int key);
-    int extractMin();
+    Node* extractMin(); /// This was adjusted to be "Node*" instead of "int" for testing purposes / for the interactive menu
     void deleteNode(Node* x);
 
 
@@ -340,14 +340,65 @@ void FibonacciHeap::decreaseKey(Node* x, int key)
         y->marked=false;
 }
 
-int FibonacciHeap::extractMin()
+///Currently in work
+Node* FibonacciHeap::extractMin()
 {
-    int key=this->minNode->key;
+    Node* Y=this->minNode; ///keep the minNode, might be useful later
+    Node* newMinNode=this->minNode->right; ///make this because this->minNode=newMinNode later
+    int key=this->minNode->key;///keep the key of minNode (of the minNode we want to cut)
+    int maxDegree = ceil(log2(this->n));///max possible degree
+    vector<Node*>degreeNodes(maxDegree); /// The vector with max degree for later
+
+    this->minNode->left->right=this->minNode->right; /// Link the left and right of this->minNode (because we will cut this->minNode)
+    this->minNode->right->left=this->minNode->left;
+    this->minNode->left=nullptr;///Make the left and right of the minNode nullptr because we already linked its siblings and we will need to remove it soon
+    this->minNode->right=nullptr;
+
+    Node* current = this->minNode->child; ///Make every child's parent pointer to nullptr
+
+    do
+    {
+        current->parent=nullptr;
+        current = current->right;
+    }
+    while (current != this->minNode->child);
+
+
+    /// Get the new minimum node (right sibling of previous minNode) and the previous minNode pointer to its child and their right nodes
+    Node* minNode1 = newMinNode;
+    Node* minNode2 = this->minNode->child;
+    Node* minNode1Right = minNode1->right;
+    Node* minNode2Right = minNode2->right;
+
+    /// Link the two root lists together (link the child's lists which contains all of previous minNode childs to the right sibling of previous minNode)
+    minNode1->right = minNode2Right;
+    minNode2Right->left = minNode1;
+    minNode2->right = minNode1Right;
+    minNode1Right->left = minNode2;
+
+    this->minNode->child=nullptr;///we dont need this anymore since we are going to cut this->minNode
+    this->minNode=newMinNode; ///update the minNode to be the previous minNode right sibling
+
+
+
 
     /// To be continued
 
-    return key;
 
+
+
+    ///At the final, traverse the root list and find the new minimum
+    current = this->minNode->right;
+    while (current != this->minNode)
+    {
+        if (current->key < this->minNode->key)
+        {
+            this->minNode = current;
+        }
+        current = current->right;
+    }
+
+    return Y;
 }
 
 void FibonacciHeap::deleteNode(Node* x)
