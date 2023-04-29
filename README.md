@@ -27,4 +27,20 @@ Fibonacci Heap
   
   ![image](https://user-images.githubusercontent.com/105515716/234973491-ef62f24d-c20f-43c1-814d-e44ed8494a78.png)
   
+  For testing purposes, this implementation includes an interactive menu. Additionally, it has two Fibonacci Heaps (let's call them Fibonacci Heap A and Fibonacci Heap B) stored in memory, which look like this:
+  
+  Fibonacci Heap A :
+  
+  ![fibonacci-heap2 (1)](https://user-images.githubusercontent.com/105515716/235310825-12684ac3-aaad-48e6-90e5-d0f9b99234c9.png)
+
+
+  Fibonacci Heap B : 
+  
+  ![Screenshot_1](https://user-images.githubusercontent.com/105515716/235310849-0e15a383-dcbe-49ba-a224-5857143235d3.jpg)
+
+
+  Using the interactive menu, we can test all the operations on the Fibonacci Heap A, including a one-time use-only Merge operation that merges Fibonacci Heap A with Fibonacci Heap B. To be more precise, Fibonacci Heap A is the Fibonacci Heap we will be working on, and Fibonacci Heap B is just to test the Merge operation.
+
+
+  
   
