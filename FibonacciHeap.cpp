@@ -113,6 +113,8 @@ public:
     Node* getMinNode();
     vector<Node*> getNodes();
     void setNodes(vector<Node*> newNodes);
+    void setMinNode(Node* x);
+    void setN(int n);
     void displayFibonacciHeap();
     void displayAllNodes();
 
@@ -374,6 +376,14 @@ void FibonacciHeap::setNodes(vector<Node*> newNodes)
 {
     this->nodes = newNodes;
 }
+void FibonacciHeap::setMinNode(Node* x)
+{
+    this->minNode=x;
+}
+void FibonacciHeap::setN(int n)
+{
+    this->n=n;
+}
 
 void FibonacciHeap::displayFibonacciHeap()
 {
@@ -394,6 +404,8 @@ void FibonacciHeap::displayFibonacciHeap()
         current = current->right;
     }
     while (current != this->minNode);
+    cout<<endl;
+    cout<<"The Fibonacci Heap has " << this->n << " nodes.";
     cout<<endl;
 }
 
@@ -497,6 +509,7 @@ int main()
     Nodes1.push_back(g);
     Nodes1.push_back(i);
     A.setNodes(Nodes1);
+    A.setN(14);
 
 
 /// Fibonacci Heap B
@@ -534,6 +547,7 @@ int main()
     Nodes2.push_back(k);
     Nodes2.push_back(l);
     B.setNodes(Nodes2);
+    B.setN(7);
 
 
 ///Fibonacci Heap C (Another Fibonacci Heap B)
@@ -571,6 +585,7 @@ int main()
     Nodes6.push_back(n);
     Nodes6.push_back(p);
     C.setNodes(Nodes6);
+    C.setN(7);
 
 
 /// Fibonacci Heap D (Your own Fibonacci Heap)
