@@ -353,15 +353,9 @@ Node* FibonacciHeap::extractMin()
     }
 
     Node* Y=this->minNode; ///keep the minNode, might be useful later
-    Node* newMinNode=this->minNode->right; ///make this because this->minNode=newMinNode later
     int key=this->minNode->key;///keep the key of minNode (of the minNode we want to cut)
     int maxDegree = ceil(log2(this->n))+1;///max possible degree
     vector<Node*> degreeNodes(maxDegree, nullptr); /// The vector with max degree for later
-
-    this->minNode->left->right=this->minNode->right; /// Link the left and right of this->minNode (because we will cut this->minNode)
-    this->minNode->right->left=this->minNode->left;
-    this->minNode->left=nullptr;///Make the left and right of the minNode nullptr because we already linked its siblings and we will need to remove it soon
-    this->minNode->right=nullptr;
 
     if (this->minNode->child!=nullptr)
     {
@@ -376,7 +370,7 @@ Node* FibonacciHeap::extractMin()
 
 
         /// Get the new minimum node (right sibling of previous minNode) and the previous minNode pointer to its child and their right nodes
-        Node* minNode1 = newMinNode;
+        Node* minNode1 = this->minNode;
         Node* minNode2 = this->minNode->child;
         Node* minNode1Right = minNode1->right;
         Node* minNode2Right = minNode2->right;
@@ -390,6 +384,14 @@ Node* FibonacciHeap::extractMin()
         this->minNode->child=nullptr;///we dont need this anymore since we are going to cut this->minNode
     }
 
+    this->minNode->left->right=this->minNode->right; /// Link the left and right of this->minNode (because we will cut this->minNode)
+    this->minNode->right->left=this->minNode->left;
+
+    Node* newMinNode=this->minNode->right; ///make this because this->minNode=newMinNode later
+
+    this->minNode->left=nullptr;///Make the left and right of the minNode nullptr because we already linked its siblings and we will need to remove it soon
+    this->minNode->right=nullptr;
+
     this->minNode=newMinNode; ///update the minNode to be the previous minNode right sibling
 
 
@@ -399,16 +401,20 @@ Node* FibonacciHeap::extractMin()
     ///aici ba merge ba nu merge
 
     Node* current=this->minNode; ///the combining trees with same degree part, we start from minNode
+
     while (true) ///we need just one traverse through the root list to do this (it s magic)
     {
         this->displayFibonacciHeap();
         cout<<endl;
+
+        if(current->seen==true) ///so if we encounter a seen node again when degreeNodes[degree] is null ptr, it means we completed the consolidate part
+            break;
+
         int degree = current->degree;///get current node degree
         if (degreeNodes[degree] == nullptr)///check if there wasnt a node before with degree number of nodes
         {
-            if(current->seen==true) ///so if we encounter a seen node again when degreeNodes[degree] is null ptr, it means we completed the consolidate part
-                break;
-            else
+
+            if(current->seen==false) ///so if we encounter a seen node again when degreeNodes[degree] is null ptr, it means we completed the consolidate part
                 current->seen=true; ///if not, we mark it seen as true for later.
 
             degreeNodes[degree] = current;///if there wasnt just update degreeNodes[degree] with current and move on to the right
@@ -424,21 +430,19 @@ Node* FibonacciHeap::extractMin()
         }
         else ///if there is already some tree with same degree as current
         {
-            if(current->seen==true) ///problem 18, asta iar nu stiu ce sa i fac deocamdata
+            int degree1 = current->degree;///get current node degree
+            Node* next=current->right;
+            while(degreeNodes[degree1]!=nullptr)
             {
-                current=current->right;
-                if (this->minNode==current)
-                    break;
-            }
-
-            else
-            {
-                Node* other = degreeNodes[degree]; ///take the element from the vector
-                degreeNodes[degree] = nullptr; /// reset the degreeNodes array
+                degree1 = current->degree;///get current node degree ///update
+                Node* other = degreeNodes[degree1]; ///take the element from the vector
+                degreeNodes[degree1] = nullptr; /// reset the degreeNodes array
 
                 if (current->key > other->key) ///to make everytime other a child of current (makes things easier)
                 {
+
                     swap(current, other);
+
                 }
 
                 /// Link other as a child of current
@@ -449,6 +453,7 @@ Node* FibonacciHeap::extractMin()
                 other->parent=current;///update its parent to current
 
                 current->degree++;///update number of childs of current, other is now a child of current so +1
+                degree1++;
 
                 if (current->child == nullptr) ///if current has no previous childs just set child to other
                 {
@@ -474,21 +479,17 @@ Node* FibonacciHeap::extractMin()
                     this->minNode = current; ///Update minNode if necesarry
                 }
 
-                int degree1=current->degree;
-                if (degreeNodes[degree1] == nullptr)///check if there wasnt a node before with the new degree number of nodes
-                {
-
-                    current->seen=false; ///asta nici nu mai stiu ce sens are
-                    /*degreeNodes[degree1] = current;///if there wasnt an element in vector for current degree+1 (new degree) just update degreeNodes[degree] with current and move on to the right
-                    current = current->right;*/
+                other->seen=false;
 
 
-                }
+
+
             }
 
 
+            current=next;
 
-            ///now we dont set current=current->right because we now want to check the updated current with its updated degree to see if we can combine it again with anyone else, when we find that he has no other degree tree mates, it will enter the first if because the position in vector needs to be nullptr in order to have no more same degrees trees with current. so only then we go current=current->right;
+
 
         }
 
@@ -502,7 +503,7 @@ Node* FibonacciHeap::extractMin()
         current2->seen=false;
         current2 = current2->right;
     }
-    while (current != this->minNode);
+    while (current2 != this->minNode);
 
 
     this->n--;
