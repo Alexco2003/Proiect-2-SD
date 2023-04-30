@@ -65,6 +65,7 @@ struct Node
     Node* left; /// The left sibling of the node
     Node* right; /// The right sibling of the node
     Node* child; /// One of the node's children (if any)
+    bool seen; /// For extract-min, to know when to exit the while
 
     Node();
     Node(int key);
@@ -80,6 +81,7 @@ Node::Node()
     this->left = this;
     this->right = this;
     this->marked = false;
+    this->seen=false;
 }
 
 Node::Node(int key)
@@ -91,6 +93,7 @@ Node::Node(int key)
     this->left = this;
     this->right = this;
     this->marked = false;
+    this->seen=false;
 }
 
 class FibonacciHeap
@@ -343,60 +346,166 @@ void FibonacciHeap::decreaseKey(Node* x, int key)
 ///Currently in work
 Node* FibonacciHeap::extractMin()
 {
+    if (this->minNode == nullptr)
+    {
+        cout << "The Fibonacci Heap is empty." << endl;
+        return this->minNode;
+    }
+
     Node* Y=this->minNode; ///keep the minNode, might be useful later
     Node* newMinNode=this->minNode->right; ///make this because this->minNode=newMinNode later
     int key=this->minNode->key;///keep the key of minNode (of the minNode we want to cut)
-    int maxDegree = ceil(log2(this->n));///max possible degree
-    vector<Node*>degreeNodes(maxDegree); /// The vector with max degree for later
+    int maxDegree = ceil(log2(this->n))+1;///max possible degree
+    vector<Node*> degreeNodes(maxDegree, nullptr); /// The vector with max degree for later
 
     this->minNode->left->right=this->minNode->right; /// Link the left and right of this->minNode (because we will cut this->minNode)
     this->minNode->right->left=this->minNode->left;
     this->minNode->left=nullptr;///Make the left and right of the minNode nullptr because we already linked its siblings and we will need to remove it soon
     this->minNode->right=nullptr;
 
-    Node* current = this->minNode->child; ///Make every child's parent pointer to nullptr
-
-    do
+    if (this->minNode->child!=nullptr)
     {
-        current->parent=nullptr;
-        current = current->right;
+        Node* current = this->minNode->child; ///Make every child's parent pointer to nullptr
+
+        do
+        {
+            current->parent=nullptr;
+            current = current->right;
+        }
+        while (current != this->minNode->child);
+
+
+        /// Get the new minimum node (right sibling of previous minNode) and the previous minNode pointer to its child and their right nodes
+        Node* minNode1 = newMinNode;
+        Node* minNode2 = this->minNode->child;
+        Node* minNode1Right = minNode1->right;
+        Node* minNode2Right = minNode2->right;
+
+        /// Link the two root lists together (link the child's lists which contains all of previous minNode childs to the right sibling of previous minNode)
+        minNode1->right = minNode2Right;
+        minNode2Right->left = minNode1;
+        minNode2->right = minNode1Right;
+        minNode1Right->left = minNode2;
+
+        this->minNode->child=nullptr;///we dont need this anymore since we are going to cut this->minNode
     }
-    while (current != this->minNode->child);
 
-
-    /// Get the new minimum node (right sibling of previous minNode) and the previous minNode pointer to its child and their right nodes
-    Node* minNode1 = newMinNode;
-    Node* minNode2 = this->minNode->child;
-    Node* minNode1Right = minNode1->right;
-    Node* minNode2Right = minNode2->right;
-
-    /// Link the two root lists together (link the child's lists which contains all of previous minNode childs to the right sibling of previous minNode)
-    minNode1->right = minNode2Right;
-    minNode2Right->left = minNode1;
-    minNode2->right = minNode1Right;
-    minNode1Right->left = minNode2;
-
-    this->minNode->child=nullptr;///we dont need this anymore since we are going to cut this->minNode
     this->minNode=newMinNode; ///update the minNode to be the previous minNode right sibling
 
 
+    this->displayFibonacciHeap(); ///pana aici merge conform planului, UPDATE : aparent nici pana aici nu merge bine la al doilea extract min NU STIU DE CE (o accesare de memorie proasta)
+    cout<<endl;
 
+    ///aici ba merge ba nu merge
 
-    /// To be continued
-
-
-
-
-    ///At the final, traverse the root list and find the new minimum
-    current = this->minNode->right;
-    while (current != this->minNode)
+    Node* current=this->minNode; ///the combining trees with same degree part, we start from minNode
+    while (true) ///we need just one traverse through the root list to do this (it s magic)
     {
-        if (current->key < this->minNode->key)
+        this->displayFibonacciHeap();
+        cout<<endl;
+        int degree = current->degree;///get current node degree
+        if (degreeNodes[degree] == nullptr)///check if there wasnt a node before with degree number of nodes
         {
-            this->minNode = current;
+            if(current->seen==true) ///so if we encounter a seen node again when degreeNodes[degree] is null ptr, it means we completed the consolidate part
+                break;
+            else
+                current->seen=true; ///if not, we mark it seen as true for later.
+
+            degreeNodes[degree] = current;///if there wasnt just update degreeNodes[degree] with current and move on to the right
+
+            if (current->key < this->minNode->key) ///update the minimum if necesarry
+            {
+                this->minNode = current;
+            }
+
+            current = current->right;
+
+
         }
-        current = current->right;
+        else ///if there is already some tree with same degree as current
+        {
+            if(current->seen==true) ///problem 18, asta iar nu stiu ce sa i fac deocamdata
+            {
+                current=current->right;
+                if (this->minNode==current)
+                    break;
+            }
+
+            else
+            {
+                Node* other = degreeNodes[degree]; ///take the element from the vector
+                degreeNodes[degree] = nullptr; /// reset the degreeNodes array
+
+                if (current->key > other->key) ///to make everytime other a child of current (makes things easier)
+                {
+                    swap(current, other);
+                }
+
+                /// Link other as a child of current
+
+                other->left->right=other->right; /// Link the left and right of other (because we will cut other)
+                other->right->left=other->left;
+
+                other->parent=current;///update its parent to current
+
+                current->degree++;///update number of childs of current, other is now a child of current so +1
+
+                if (current->child == nullptr) ///if current has no previous childs just set child to other
+                {
+                    current->child = other;
+                }
+                else
+                {
+                    /// Get the child of current and other and their right nodes
+                    Node* minNode1 = current->child;
+                    Node* minNode2 = other;
+                    Node* minNode1Right = minNode1->right;
+                    Node* minNode2Right = minNode2->right;
+
+                    /// Link the two root lists together (link the child's lists which contains all childs with their new sibling other)
+                    minNode1->right = minNode2Right;
+                    minNode2Right->left = minNode1;
+                    minNode2->right = minNode1Right;
+                    minNode1Right->left = minNode2;
+                }
+
+                if (current->key < this->minNode->key)
+                {
+                    this->minNode = current; ///Update minNode if necesarry
+                }
+
+                int degree1=current->degree;
+                if (degreeNodes[degree1] == nullptr)///check if there wasnt a node before with the new degree number of nodes
+                {
+
+                    current->seen=false; ///asta nici nu mai stiu ce sens are
+                    /*degreeNodes[degree1] = current;///if there wasnt an element in vector for current degree+1 (new degree) just update degreeNodes[degree] with current and move on to the right
+                    current = current->right;*/
+
+
+                }
+            }
+
+
+
+            ///now we dont set current=current->right because we now want to check the updated current with its updated degree to see if we can combine it again with anyone else, when we find that he has no other degree tree mates, it will enter the first if because the position in vector needs to be nullptr in order to have no more same degrees trees with current. so only then we go current=current->right;
+
+        }
+
+
     }
+
+    Node* current2 = this->minNode; ///Make every root seen attribute false for next extract mins
+
+    do
+    {
+        current2->seen=false;
+        current2 = current2->right;
+    }
+    while (current != this->minNode);
+
+
+    this->n--;
 
     return Y;
 }
@@ -790,6 +899,17 @@ int main()
                         clearScreen();
                         break;
                     }
+                    A.displayFibonacciHeap();
+                    cout<<endl;
+                    cout<<A.extractMin()->key<<endl;
+                    A.displayFibonacciHeap();
+                    cout<<endl;
+                    A.displayAllNodes();
+                    cout<<endl;
+                    cout<<endl;
+                    cout<<"Press 'enter' to return to the menu."<<endl;
+                    cin.ignore();
+                    while(cin.get() != '\n');
 
                     clearScreen();
                     break;
@@ -977,7 +1097,17 @@ int main()
                         clearScreen();
                         break;
                     }
-
+                    D.displayFibonacciHeap();
+                    cout<<endl;
+                    cout<<D.extractMin()->key<<endl;
+                    D.displayFibonacciHeap();
+                    cout<<endl;
+                    D.displayAllNodes();
+                    cout<<endl;
+                    cout<<endl;
+                    cout<<"Press 'enter' to return to the menu."<<endl;
+                    cin.ignore();
+                    while(cin.get() != '\n');
                     clearScreen();
                     break;
                 }
@@ -1052,6 +1182,8 @@ int main()
 
         }
     }
+
+
 
 
     return 0;
