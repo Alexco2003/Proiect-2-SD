@@ -49,7 +49,8 @@ void Menu3()
     cout << "\n6-Extract Minimum";
     cout << "\n7-Display Fibonacci Heap 1 (The Root List)";
     cout << "\n8-Display Fibonacci Heap 2 (All The Nodes)";
-    cout << "\n9-Back";
+    cout << "\n9-Display Nodes' Information";
+    cout << "\n10-Back";
 
     cout << endl;
 
@@ -65,24 +66,11 @@ struct Node
     Node* left; /// The left sibling of the node
     Node* right; /// The right sibling of the node
     Node* child; /// One of the node's children (if any)
-    bool seen; /// For extract-min, to know when to exit the while
+    bool seen; /// For extract-min, to know when to exit the while(true)
 
-    Node();
     Node(int key);
 
 };
-
-Node::Node()
-{
-    this->key = 0;
-    this->degree = 0;
-    this->parent = nullptr;
-    this->child = nullptr;
-    this->left = this;
-    this->right = this;
-    this->marked = false;
-    this->seen=false;
-}
 
 Node::Node(int key)
 {
@@ -96,6 +84,60 @@ Node::Node(int key)
     this->seen=false;
 }
 
+ostream& operator<<(ostream& out, const Node& obj) /// For testing purposes / for the interactive menu (to see all attributes of a node)
+{
+    out<<"The key (value) of the node : ";
+    out<<obj.key<<endl;
+    out<<"The degree of the node : ";
+    out<<obj.degree<<endl;
+    if(obj.parent==nullptr)
+        out<<"The node is a root (has no parent)"<<endl;
+    else
+    {
+        out<<"The parent of the node is : ";
+        out<<obj.parent->key<<endl;
+    }
+    if(obj.child==nullptr)
+        out<<"The node has no children"<<endl;
+    else
+    {
+        out<<"The \"favorite\" child : ";
+        out<<obj.child->key<<endl;
+        if(obj.degree>1)
+        {
+            out<<"The children of the node : ";
+            Node* current=obj.child;
+            do
+            {
+                if(current->right==obj.child)
+                    out << current->key;
+                else
+                    out << current->key << " --> ";
+                current = current->right;
+            }
+            while (current != obj.child);
+            out<<endl;
+        }
+
+    }
+
+    out<<"The left sibling of the node : ";
+    out<<obj.left->key<<endl;
+    out<<"The right sibling of the node : ";
+    out<<obj.right->key<<endl;
+    if (obj.marked==true)
+        out<<"The node is marked"<<endl;
+    else
+        out<<"The node is not marked"<<endl;
+    if (obj.seen==true)
+        out<<"The node is seen"<<endl;
+    else
+        out<<"The node is not seen"<<endl;
+
+    out<<endl;
+    return out;
+}
+
 class FibonacciHeap
 {
 private:
@@ -104,7 +146,7 @@ private:
     int n;
     /// Pointer to the minimum node in the heap
     Node* minNode;
-    /// Vector with all the nodes from the Fibonacci Heap (This was added for testing / for the interactive menu
+    /// Vector with all the nodes from the Fibonacci Heap (This was added for testing / for the interactive menu)
     vector<Node*> nodes;
 
 public:
@@ -120,17 +162,21 @@ public:
     void setN(int n);
     void displayFibonacciHeap();
     void displayAllNodes();
+    void deleteNodes(Node* start);
 
-    /// Important Methods (The operations)
+    /// Important Methods (The operations of the Fibonacci Heap)
     int findMin();
     Node* insert(int key); /// This was adjusted to be "Node*" instead of "void" for testing purposes / for the interactive menu
     void merge(FibonacciHeap& FH);
     void decreaseKey(Node* x, int key);
     Node* extractMin(); /// This was adjusted to be "Node*" instead of "int" for testing purposes / for the interactive menu
-    void deleteNode(Node* x);
+    Node* deleteNode(Node* x); /// This was adjusted to be "Node*" instead of "void" for testing purposes / for the interactive menu
 
 
-    ~FibonacciHeap() {};
+    // Fibonacci Heap destructor
+    ~FibonacciHeap();
+
+
 
 };
 
@@ -154,11 +200,6 @@ int FibonacciHeap::findMin()
 
 Node* FibonacciHeap::insert(int key)
 {
-    if(key<0)
-    {
-        Node* node = new Node();
-        return node;
-    }
     /// Create a new node with the given key
     Node* node = new Node(key);
 
@@ -337,13 +378,12 @@ void FibonacciHeap::decreaseKey(Node* x, int key)
             y->degree--;
         }
 
-    y->marked=true; ///If y is not a root, mark it
+    y->marked=true; /// If y is not a root, mark it
 
-    if(y->parent==nullptr) ///If y is a root, don't mark it because it is redundant
+    if(y->parent==nullptr) /// If y is a root, don't mark it because it is redundant
         y->marked=false;
 }
 
-///Currently in work
 Node* FibonacciHeap::extractMin()
 {
     if (this->minNode == nullptr)
@@ -351,16 +391,14 @@ Node* FibonacciHeap::extractMin()
         cout << "The Fibonacci Heap is empty." << endl;
         return this->minNode;
     }
+    this->minNode->degree=0;
+    Node* oldMinNode=this->minNode; /// Keep the current minNode, because we will return it later
+    int maxDegree = ceil(log2(this->n))+1;/// The maximum possible degree from the Fibonacci Heap
+    vector<Node*> degreeNodes(maxDegree, nullptr); /// The vector with the length of maxDegree for later
 
-    Node* Y=this->minNode; ///keep the minNode, might be useful later
-    int key=this->minNode->key;///keep the key of minNode (of the minNode we want to cut)
-    int maxDegree = ceil(log2(this->n))+1;///max possible degree
-    vector<Node*> degreeNodes(maxDegree, nullptr); /// The vector with max degree for later
-
-    if (this->minNode->child!=nullptr)
+    if (this->minNode->child!=nullptr) /// If this->minNode has children
     {
-        Node* current = this->minNode->child; ///Make every child's parent pointer to nullptr
-
+        Node* current = this->minNode->child; /// Make every child's parent pointer to nullptr
         do
         {
             current->parent=nullptr;
@@ -368,136 +406,89 @@ Node* FibonacciHeap::extractMin()
         }
         while (current != this->minNode->child);
 
+        this->minNode->right->left = current->left; /// Add all children of this->minNode to the root list
+        current->left->right = this->minNode->right;
+        this->minNode->right = current;
+        current->left = this->minNode;
 
-        /// Get the new minimum node (right sibling of previous minNode) and the previous minNode pointer to its child and their right nodes
-        Node* minNode1 = this->minNode;
-        Node* minNode2 = this->minNode->child;
-        Node* minNode1Right = minNode1->right;
-        Node* minNode2Right = minNode2->right;
+        this->minNode->child=nullptr; /// We don't need this anymore since we are going to cut this->minNode
+    }
 
-        /// Link the two root lists together (link the child's lists which contains all of previous minNode childs to the right sibling of previous minNode)
-        minNode1->right = minNode2Right;
-        minNode2Right->left = minNode1;
-        minNode2->right = minNode1Right;
-        minNode1Right->left = minNode2;
+    Node* newMinNode=this->minNode->right; /// Set a temporary minNode to be able to continue
 
-        this->minNode->child=nullptr;///we dont need this anymore since we are going to cut this->minNode
+    if(this->minNode == newMinNode) /// If this->minNode is the only node in the root list, stop here
+    {
+        this->minNode=nullptr;
+        this->n--;
+        return oldMinNode;
     }
 
     this->minNode->left->right=this->minNode->right; /// Link the left and right of this->minNode (because we will cut this->minNode)
     this->minNode->right->left=this->minNode->left;
 
-    Node* newMinNode=this->minNode->right; ///make this because this->minNode=newMinNode later
-
-    this->minNode->left=nullptr;///Make the left and right of the minNode nullptr because we already linked its siblings and we will need to remove it soon
+    this->minNode->left=nullptr; /// Make the left and right of the this->minNode nullptr because we have already linked its siblings and will soon need to remove it
     this->minNode->right=nullptr;
 
-    this->minNode=newMinNode; ///update the minNode to be the previous minNode right sibling
+    this->minNode=newMinNode; /// Update this->minNode
 
 
-    this->displayFibonacciHeap(); ///pana aici merge conform planului, UPDATE : aparent nici pana aici nu merge bine la al doilea extract min NU STIU DE CE (o accesare de memorie proasta)
-    cout<<endl;
+    Node* current=this->minNode; /// We are getting to the combining of the trees with the same degree part. We start from this->minNode
 
-    ///aici ba merge ba nu merge
-
-    Node* current=this->minNode; ///the combining trees with same degree part, we start from minNode
-
-    while (true) ///we need just one traverse through the root list to do this (it s magic)
+    while (true)
     {
-        this->displayFibonacciHeap();
-        cout<<endl;
-
-        if(current->seen==true) ///so if we encounter a seen node again when degreeNodes[degree] is null ptr, it means we completed the consolidate part
+        if(current->seen==true) /// So if we encounter a previously visited node, it means we have completed our job here
             break;
+        Node* next = current->right; /// To be able to keep in mind where we need to go next
+        int degree = current->degree; /// Get current node degree
 
-        int degree = current->degree;///get current node degree
-        if (degreeNodes[degree] == nullptr)///check if there wasnt a node before with degree number of nodes
+        while(degreeNodes[degree] != nullptr) /// While (degreeNodes[degree] != nullptr), we ensure that the current node is combined with every other node of the same degree
         {
+            Node* other = degreeNodes[degree]; /// Take the element from the vector
+            degreeNodes[degree] = nullptr; /// Reset the degreeNodes[degree]
 
-            if(current->seen==false) ///so if we encounter a seen node again when degreeNodes[degree] is null ptr, it means we completed the consolidate part
-                current->seen=true; ///if not, we mark it seen as true for later.
-
-            degreeNodes[degree] = current;///if there wasnt just update degreeNodes[degree] with current and move on to the right
-
-            if (current->key < this->minNode->key) ///update the minimum if necesarry
+            if (current->key > other->key) /// To make every time "other" a child of "current"
             {
-                this->minNode = current;
+                swap(current, other);
             }
+            other->seen = false; /// This will be important for next extractMin operations
 
-            current = current->right;
+            /// Link "other" as a child of "current"
 
+            other->left->right=other->right; /// Link the left and right of "other" (because we will cut "other")
+            other->right->left=other->left;
 
+            other->parent=current; /// Update its parent to "current"
+
+            degree++; /// Update degree of "current", "other" is now a child of "current" so +1
+            current->degree++;
+
+            if (current->child == nullptr) /// If "current" has no previous children just set its child pointer to "other"
+            {
+                current->child = other;
+                other->right = other->left = other; /// Set the left and right of "other" to himself
+            }
+            else
+            {
+                /// If "current" has children, merge "other" to "current's" children
+                current->child->left->right = other;
+                other->left = current->child->left;
+                other->right = current->child;
+                current->child->left = other;
+            }
         }
-        else ///if there is already some tree with same degree as current
+        current->seen=true; /// To know that we have visited the current node
+
+        degreeNodes[degree] = current; /// Update degreeNodes[degree]
+
+        if (current->key < this->minNode->key) /// Update the minimum if necesarry
         {
-            int degree1 = current->degree;///get current node degree
-            Node* next=current->right;
-            while(degreeNodes[degree1]!=nullptr)
-            {
-                degree1 = current->degree;///get current node degree ///update
-                Node* other = degreeNodes[degree1]; ///take the element from the vector
-                degreeNodes[degree1] = nullptr; /// reset the degreeNodes array
-
-                if (current->key > other->key) ///to make everytime other a child of current (makes things easier)
-                {
-
-                    swap(current, other);
-
-                }
-
-                /// Link other as a child of current
-
-                other->left->right=other->right; /// Link the left and right of other (because we will cut other)
-                other->right->left=other->left;
-
-                other->parent=current;///update its parent to current
-
-                current->degree++;///update number of childs of current, other is now a child of current so +1
-                degree1++;
-
-                if (current->child == nullptr) ///if current has no previous childs just set child to other
-                {
-                    current->child = other;
-                }
-                else
-                {
-                    /// Get the child of current and other and their right nodes
-                    Node* minNode1 = current->child;
-                    Node* minNode2 = other;
-                    Node* minNode1Right = minNode1->right;
-                    Node* minNode2Right = minNode2->right;
-
-                    /// Link the two root lists together (link the child's lists which contains all childs with their new sibling other)
-                    minNode1->right = minNode2Right;
-                    minNode2Right->left = minNode1;
-                    minNode2->right = minNode1Right;
-                    minNode1Right->left = minNode2;
-                }
-
-                if (current->key < this->minNode->key)
-                {
-                    this->minNode = current; ///Update minNode if necesarry
-                }
-
-                other->seen=false;
-
-
-
-
-            }
-
-
-            current=next;
-
-
-
+            this->minNode = current;
         }
 
-
+        current = next; /// Go to the next node that we need to visit
     }
 
-    Node* current2 = this->minNode; ///Make every root seen attribute false for next extract mins
-
+    Node* current2 = this->minNode; /// Set the "seen" attribute to false for every root to prepare for the next extractMin operation
     do
     {
         current2->seen=false;
@@ -505,20 +496,19 @@ Node* FibonacciHeap::extractMin()
     }
     while (current2 != this->minNode);
 
-
     this->n--;
 
-    return Y;
+    return oldMinNode;
 }
 
-void FibonacciHeap::deleteNode(Node* x)
+Node* FibonacciHeap::deleteNode(Node* x)
 {
-    /// Decrease the key of the node to be deleted to a very small negative value
-    decreaseKey(x,-2003);
+    /// Decrease the key of the node to be deleted to the maximum negative integer
+    decreaseKey(x,(-(1<<31)));
     /// Extract the minimum node (which will be the node with the decreased key)
-    extractMin();
+    Node* y=extractMin();
+    return y;
 }
-
 
 
 int FibonacciHeap::getN()
@@ -582,12 +572,33 @@ void FibonacciHeap::displayAllNodes()
     cout<<endl;
 }
 
+void FibonacciHeap::deleteNodes(Node* start)
+{
+    if (start != nullptr)
+    {
+        Node* current = start;
+        do
+        {
+            Node* temp = current;
+            current = current->right;
+            deleteNodes(temp->child);
+            delete temp;
+        }
+        while (current != start);
+    }
+}
+
+FibonacciHeap::~FibonacciHeap()
+{
+    if (minNode != nullptr)
+    {
+        deleteNodes(minNode);
+    }
+}
 
 int main()
 {
-
-
-/// Fibonacci Heap A
+    /// Fibonacci Heap A
 
     FibonacciHeap A;
 
@@ -672,8 +683,7 @@ int main()
     A.setNodes(Nodes1);
     A.setN(14);
 
-
-/// Fibonacci Heap B
+    /// Fibonacci Heap B
 
     FibonacciHeap B;
 
@@ -711,7 +721,7 @@ int main()
     B.setN(7);
 
 
-///Fibonacci Heap C (Another Fibonacci Heap B)
+    /// Fibonacci Heap C (Another Fibonacci Heap B) - This is for merging your own Fibonacci Heap with a copy of Fibonacci B
 
     FibonacciHeap C;
 
@@ -749,7 +759,7 @@ int main()
     C.setN(7);
 
 
-/// Fibonacci Heap D (Your own Fibonacci Heap)
+    /// Fibonacci Heap D (Your own Fibonacci Heap)
     FibonacciHeap D;
 
     int cnt1=0,cnt2=0,cnt3=0;
@@ -786,7 +796,7 @@ int main()
                     cout<<"The key (value) of the node to be inserted : ";
                     int key;
                     cin>>key;
-                    if(key>=0)
+                    if(key>(-(1<<31)))
                     {
                         vector <Node*> nodes;
                         nodes=A.getNodes();
@@ -794,7 +804,7 @@ int main()
                         A.setNodes(nodes);
                         clearScreen();
                         cout<<"The insertion was successful!"<<endl;
-                        pause(3);
+                        pause(2);
                     }
                     clearScreen();
                     break;
@@ -814,7 +824,7 @@ int main()
                     cout<<"Press 'enter' to return to the menu."<<endl;
                     cin.ignore();
                     while(cin.get() != '\n');
-                    clearScreen();
+
                     clearScreen();
                     break;
                 }
@@ -864,31 +874,65 @@ int main()
                     int nr;
                     cin>>nr;
                     cout<<endl;
-                    cout<<"Pick the new key (value) of the node : ";
-                    int nr2;
-                    cin>>nr2;
-                    A.decreaseKey(A.getNodes()[nr],nr2);
-                    cout<<endl;
-                    if(A.getNodes()[nr]->key==nr2)
+                    if(nr>=0 && nr<A.getNodes().size())
                     {
-                        cout<<"DecreaseKey was successful!"<<endl;
-                        pause(3);
+                        cout<<"Pick the new key (value) of the node : ";
+                        int nr2;
+                        cin>>nr2;
+                        if(nr2>(-(1<<31)))
+                        {
+                            A.decreaseKey(A.getNodes()[nr],nr2);
+                            cout<<endl;
+                            if(A.getNodes()[nr]->key==nr2)
+                            {
+                                clearScreen();
+                                cout<<"Decrease Key was successful!"<<endl;
+                                pause(2);
+                            }
+                        }
+
                     }
-
-
-
                     clearScreen();
                     break;
                 }
                 case 5:
                 {
                     clearScreen();
+
                     if(A.getMinNode()==nullptr || A.getNodes().size()==0)
                     {
                         clearScreen();
                         break;
                     }
+                    for(int i=0; i<A.getNodes().size(); i++)
+                        cout<<i<<". "<<A.getNodes()[i]->key<<endl;
+                    cout<<endl;
+                    cout<<"Pick the index of the wanted node : ";
+                    int nr;
+                    cin>>nr;
+                    cout<<endl;
+                    if(nr>=0 && nr<A.getNodes().size())
+                    {
+                        Node* x = A.deleteNode(A.getNodes()[nr]);
+                        vector<Node*> Nodes27=A.getNodes();
 
+
+                        for (int i=0; i<Nodes27.size(); i++)
+                            if (Nodes27[i]==x)
+                            {
+                                Nodes27.erase(Nodes27.begin()+i);
+                                break;
+                            }
+
+                        A.setNodes(Nodes27);
+
+                        delete x;
+                        x=nullptr;
+
+                        clearScreen();
+                        cout<<"Delete was successful!"<<endl;
+                        pause(2);
+                    }
                     clearScreen();
                     break;
                 }
@@ -900,13 +944,23 @@ int main()
                         clearScreen();
                         break;
                     }
-                    A.displayFibonacciHeap();
-                    cout<<endl;
-                    cout<<A.extractMin()->key<<endl;
-                    A.displayFibonacciHeap();
-                    cout<<endl;
-                    A.displayAllNodes();
-                    cout<<endl;
+
+                    Node* x=A.extractMin();
+                    cout<<"ExtractMinimum was successful! The extracted minimum is : " << x->key<<endl;
+
+                    vector<Node*> Nodes27=A.getNodes();
+
+                    for (int i=0; i<Nodes27.size(); i++)
+                        if (Nodes27[i]==x)
+                        {
+                            Nodes27.erase(Nodes27.begin()+i);
+                            break;
+                        }
+
+                    A.setNodes(Nodes27);
+
+                    delete x;
+                    x = nullptr;
                     cout<<endl;
                     cout<<"Press 'enter' to return to the menu."<<endl;
                     cin.ignore();
@@ -929,7 +983,10 @@ int main()
                 case 8:
                 {
                     clearScreen();
-
+                    if(A.getNodes().size()!=0)
+                    {
+                        cout<< "The nodes of the Fibonacci Heap are :"<<endl<<endl;
+                    }
                     A.displayAllNodes();
                     cout<<"Press 'enter' to return to the menu."<<endl;
                     cin.ignore();
@@ -942,8 +999,37 @@ int main()
                 case 9:
                 {
                     clearScreen();
+
+                    if(A.getMinNode()==nullptr || A.getNodes().size()==0)
+                    {
+                        clearScreen();
+                        break;
+                    }
+                    for(int i=0; i<A.getNodes().size(); i++)
+                        cout<<i<<". "<<A.getNodes()[i]->key<<endl;
+                    cout<<endl;
+                    cout<<"Pick the index of the wanted node : ";
+                    int nr;
+                    cin>>nr;
+                    clearScreen();
+                    if(nr>=0 && nr<A.getNodes().size())
+                    {
+                        cout<<(*A.getNodes()[nr]);
+
+                        cout<<"Press 'enter' to return to the menu."<<endl;
+                        cin.ignore();
+                        while(cin.get() != '\n');
+                    }
+
+                    clearScreen();
                     break;
                 }
+                case 10:
+                {
+                    clearScreen();
+                    break;
+                }
+
 
                 default:
                 {
@@ -953,7 +1039,7 @@ int main()
 
                 }
 
-                if(number2==9)
+                if(number2==10)
                 {
                     clearScreen();
                     break;
@@ -964,7 +1050,6 @@ int main()
             break;
 
         }
-
         case 2:
         {
             clearScreen();
@@ -984,7 +1069,7 @@ int main()
                     cout<<"The key (value) of the node to be inserted : ";
                     int key;
                     cin>>key;
-                    if(key>=0)
+                    if(key>(-(1<<31)))
                     {
                         vector <Node*> nodes;
                         nodes=D.getNodes();
@@ -992,7 +1077,7 @@ int main()
                         D.setNodes(nodes);
                         clearScreen();
                         cout<<"The insertion was successful!"<<endl;
-                        pause(3);
+                        pause(2);
                     }
                     clearScreen();
                     break;
@@ -1013,7 +1098,7 @@ int main()
                     cin.ignore();
                     while(cin.get() != '\n');
                     clearScreen();
-                    clearScreen();
+
                     break;
                 }
                 case 3:
@@ -1049,7 +1134,6 @@ int main()
                 {
                     clearScreen();
 
-
                     if(D.getMinNode()==nullptr || D.getNodes().size()==0)
                     {
                         clearScreen();
@@ -1062,19 +1146,24 @@ int main()
                     int nr;
                     cin>>nr;
                     cout<<endl;
-                    cout<<"Pick the new key (value) of the node : ";
-                    int nr2;
-                    cin>>nr2;
-                    D.decreaseKey(D.getNodes()[nr],nr2);
-                    cout<<endl;
-                    if(D.getNodes()[nr]->key==nr2)
+                    if(nr>=0 && nr<D.getNodes().size())
                     {
-                        cout<<"DecreaseKey was successful!"<<endl;
-                        pause(3);
+                        cout<<"Pick the new key (value) of the node : ";
+                        int nr2;
+                        cin>>nr2;
+                        if(nr2>(-(1<<31)))
+                        {
+                            D.decreaseKey(D.getNodes()[nr],nr2);
+                            cout<<endl;
+                            if(D.getNodes()[nr]->key==nr2)
+                            {
+                                clearScreen();
+                                cout<<"Decrease Key was successful!"<<endl;
+                                pause(2);
+                            }
+                        }
+
                     }
-
-
-
                     clearScreen();
                     break;
                 }
@@ -1087,6 +1176,38 @@ int main()
                         break;
                     }
 
+
+                    for(int i=0; i<D.getNodes().size(); i++)
+                        cout<<i<<". "<<D.getNodes()[i]->key<<endl;
+                    cout<<endl;
+                    cout<<"Pick the index of the wanted node : ";
+                    int nr;
+                    cin>>nr;
+                    cout<<endl;
+                    if(nr>=0 && nr<D.getNodes().size())
+                    {
+                        Node* x = D.deleteNode(D.getNodes()[nr]);
+                        vector<Node*> Nodes27=D.getNodes();
+
+
+                        for (int i=0; i<Nodes27.size(); i++)
+                            if (Nodes27[i]==x)
+                            {
+                                Nodes27.erase(Nodes27.begin()+i);
+                                break;
+                            }
+
+                        D.setNodes(Nodes27);
+
+                        delete x;
+                        x=nullptr;
+
+                        clearScreen();
+                        cout<<"Delete was successful!"<<endl;
+                        pause(2);
+                    }
+
+
                     clearScreen();
                     break;
                 }
@@ -1098,17 +1219,28 @@ int main()
                         clearScreen();
                         break;
                     }
-                    D.displayFibonacciHeap();
-                    cout<<endl;
-                    cout<<D.extractMin()->key<<endl;
-                    D.displayFibonacciHeap();
-                    cout<<endl;
-                    D.displayAllNodes();
-                    cout<<endl;
+
+                    Node* x=D.extractMin();
+                    cout<<"ExtractMinimum was successful! The extracted minimum is : " << x->key<<endl;
+
+                    vector<Node*> Nodes27=D.getNodes();
+
+                    for (int i=0; i<Nodes27.size(); i++)
+                        if (Nodes27[i]==x)
+                        {
+                            Nodes27.erase(Nodes27.begin()+i);
+                            break;
+                        }
+
+                    D.setNodes(Nodes27);
+
+                    delete x;
+                    x = nullptr;
                     cout<<endl;
                     cout<<"Press 'enter' to return to the menu."<<endl;
                     cin.ignore();
                     while(cin.get() != '\n');
+
                     clearScreen();
                     break;
                 }
@@ -1126,6 +1258,10 @@ int main()
                 case 8:
                 {
                     clearScreen();
+                    if(D.getNodes().size()!=0)
+                    {
+                        cout<< "The nodes of the Fibonacci Heap are :"<<endl<<endl;
+                    }
 
                     D.displayAllNodes();
 
@@ -1140,6 +1276,33 @@ int main()
                 case 9:
                 {
                     clearScreen();
+
+                    if(D.getMinNode()==nullptr || D.getNodes().size()==0)
+                    {
+                        clearScreen();
+                        break;
+                    }
+                    for(int i=0; i<D.getNodes().size(); i++)
+                        cout<<i<<". "<<D.getNodes()[i]->key<<endl;
+                    cout<<endl;
+                    cout<<"Pick the index of the wanted node : ";
+                    int nr;
+                    cin>>nr;
+                    clearScreen();
+                    if(nr>=0 && nr<D.getNodes().size())
+                    {
+                        cout<<(*D.getNodes()[nr]);
+
+                        cout<<"Press 'enter' to return to the menu."<<endl;
+                        cin.ignore();
+                        while(cin.get() != '\n');
+                    }
+                    clearScreen();
+                    break;
+                }
+                case 10:
+                {
+                    clearScreen();
                     break;
                 }
 
@@ -1151,7 +1314,7 @@ int main()
 
                 }
 
-                if(number3==9)
+                if(number3==10)
                 {
                     clearScreen();
                     break;
@@ -1184,10 +1347,6 @@ int main()
         }
     }
 
-
-
-
     return 0;
-
 
 }
