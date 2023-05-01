@@ -45,10 +45,10 @@ Fibonacci Heap
  
  ![Screenshot_6](https://user-images.githubusercontent.com/105515716/235469747-56f250b6-a446-474c-8990-037b921db85c.jpg)
  
- This will be the main menu. Press '1' to work on Fibonacci Heap A, press '2' to create your own Fibonacci Heap, press '3' to stop the program.
+ This is the main menu. Press '1' to work with Fibonacci Heap A, press '2' to create your own Fibonacci Heap, or press '3' to stop the program.
  
 ![Screenshot_5](https://user-images.githubusercontent.com/105515716/235469915-fe75f8b3-65d7-4ef8-9cb9-526194501448.jpg)
 
-This will be the second menu after pressing either '1' or '2' previously. You can use the operations as you please and view what you've achieved. Press '10' to go back to the main menu.
+This is the second menu, which you can access by selecting option '1' or '2' from the main menu. Here, you can perform operations on the Fibonacci Heap and view your progress. To return to the main menu, press '10'.
 
  
