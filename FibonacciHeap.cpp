@@ -436,7 +436,11 @@ Node* FibonacciHeap::extractMin()
     while (true)
     {
         if(current->seen==true) /// So if we encounter a previously visited node, it means we have completed our job here
+        {
+            current->seen=false;
             break;
+        }
+
         Node* next = current->right; /// To be able to keep in mind where we need to go next
         int degree = current->degree; /// Get current node degree
 
