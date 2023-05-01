@@ -40,3 +40,15 @@ Fibonacci Heap
 
 
   Using the interactive menu, we can test all the operations on the Fibonacci Heap A, including a one time use only Merge operation that merges Fibonacci Heap A with Fibonacci Heap B. To be more precise, Fibonacci Heap A is the Fibonacci Heap we will be working on, and Fibonacci Heap B is just to test the Merge operation. It also lets you create your own Fibonacci Heap from scratch. You can use all the operations as well on your Fibonacci Heap, having again a one time use only Merge operation with Fibonacci Heap B.
+
+ Guide for the interactive menu : 
+ 
+ ![Screenshot_6](https://user-images.githubusercontent.com/105515716/235469747-56f250b6-a446-474c-8990-037b921db85c.jpg)
+ 
+ This will be the main menu. Press '1' to work on Fibonacci Heap A, press '2' to create your own Fibonacci Heap, press '3' to stop the program.
+ 
+![Screenshot_5](https://user-images.githubusercontent.com/105515716/235469915-fe75f8b3-65d7-4ef8-9cb9-526194501448.jpg)
+
+This will be the second menu after pressing either '1' or '2' previously. You can use the operations as you please and view what you've achieved. Press '10' to go back to the main menu.
+
+ 
