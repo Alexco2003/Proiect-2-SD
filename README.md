@@ -1,7 +1,7 @@
 # Proiect-2-SD
 Fibonacci Heap
 
-  Implementation of the Fibonacci Heap in C++ with all its associated operations. My implementation of the Fibonacci Heap can handle duplicates and negative integers within the limits of the integer data type. The minimum integer possible is -2147483648, but the minimum that can be inserted into the Fibonacci Heap is one greater than that, which is -2147483647 (This was done to ensure that the 'delete' operation works properly).
+  Implementation of the Fibonacci Heap in C++ with all its associated operations. This implementation of the Fibonacci Heap can handle duplicates and negative integers within the limits of the integer data type. The minimum integer possible is -2147483648, but the minimum that can be inserted into the Fibonacci Heap is one greater than that, which is -2147483647 (This was done to ensure that the 'delete' operation works properly).
 
   A Fibonacci Heap is a data structure used to implement a priority queue that provides a better amortized runtime complexity compared to other priority queue data structures such as binary heaps or binomial heaps. The Fibonacci Heap was first introduced by Michael L. Fredman and Robert E. Tarjan in 1984. It has the same functionality as a binary heap or a binomial heap but with better amortized performance for certain operations.
 
