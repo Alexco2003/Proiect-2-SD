@@ -479,7 +479,7 @@ Node* FibonacciHeap::extractMin()
 
         degreeNodes[degree] = current; /// Update degreeNodes[degree]
 
-        if (current->key < this->minNode->key) /// Update the minimum if necesarry
+        if (current->key <= this->minNode->key) /// Update the minimum if necessary
         {
             this->minNode = current;
         }
