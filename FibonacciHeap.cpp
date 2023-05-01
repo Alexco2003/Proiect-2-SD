@@ -173,7 +173,6 @@ public:
     Node* deleteNode(Node* x); /// This was adjusted to be "Node*" instead of "void" for testing purposes / for the interactive menu
 
 
-    // Fibonacci Heap destructor
     ~FibonacciHeap();
 
 
