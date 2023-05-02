@@ -432,16 +432,16 @@ Node* FibonacciHeap::extractMin()
 
 
     Node* current=this->minNode; /// We are getting to the combining of the trees with the same degree part. We start from this->minNode
+    bool foundSeen = false; /// To know when to exit the main while
 
-    while (true)
+    while (foundSeen!=true)
     {
-        if(current->seen==true) /// So if we encounter a previously visited node, it means we have completed our job here
-        {
-            current->seen=false;
-            break;
-        }
-
+        current->seen = true; /// Update the seen attribute of "current", to know that we have visited the current node
         Node* next = current->right; /// To be able to keep in mind where we need to go next
+
+        if(next->seen == true) /// If where we need to go next is already a previously visited node, it means we have completed our job here
+            foundSeen = true;
+
         int degree = current->degree; /// Get current node degree
 
         while(degreeNodes[degree] != nullptr) /// While (degreeNodes[degree] != nullptr), we ensure that the current node is combined with every other node of the same degree
@@ -479,7 +479,6 @@ Node* FibonacciHeap::extractMin()
                 current->child->left = other;
             }
         }
-        current->seen=true; /// To know that we have visited the current node
 
         degreeNodes[degree] = current; /// Update degreeNodes[degree]
 
