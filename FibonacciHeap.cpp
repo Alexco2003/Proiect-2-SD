@@ -162,7 +162,7 @@ public:
     void setN(int n);
     void displayFibonacciHeap();
     void displayAllNodes();
-    void deleteNodes(Node* start);
+    void deleteNodes(Node* start); /// For clearing the memory after we're done
 
     /// Important Methods (The operations of the Fibonacci Heap)
     int findMin();
@@ -592,9 +592,9 @@ void FibonacciHeap::deleteNodes(Node* start)
 
 FibonacciHeap::~FibonacciHeap()
 {
-    if (minNode != nullptr)
+    if (this->minNode != nullptr)
     {
-        deleteNodes(minNode);
+        deleteNodes(this->minNode);
     }
 }
 
