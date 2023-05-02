@@ -51,7 +51,7 @@ Fibonacci Heap
 
 This is the second menu, which you can access by selecting option '1' or '2' from the main menu. Here, you can perform operations on the Fibonacci Heap and view your progress. To return to the main menu, press '10'.
 
-Note that the 'mergeheap(infoarena).cpp' file serves as a test for the Fibonacci Heap data structure. It was designed to solve the problem presented in this link, using this implementation of the Fibonacci Heap : https://www.infoarena.ro/problema/mergeheap. If you're interested, you can check out the source code that obtained a perfect score of 100 points out of 100 here : https://www.infoarena.ro/job_detail/3125141. 
+Note that the 'mergeheap(infoarena).cpp' file serves as a test for the Fibonacci Heap data structure. It was designed to solve the problem presented in this link (mergeheap), using this implementation of the Fibonacci Heap : https://www.infoarena.ro/problema/mergeheap. If you're interested, you can check out the source code that obtained a perfect score of 100 points out of 100 here : https://www.infoarena.ro/job_detail/3125141. 
 
 ![image](https://user-images.githubusercontent.com/105515716/235594584-af75355d-fc35-4f41-a00e-de5964031582.png)
 
